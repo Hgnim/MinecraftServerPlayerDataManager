@@ -6,7 +6,7 @@
   - 检查是否有孤立的玩家数据(通过usercache.json文件判断)
   - 通过玩家的UUID寻找匹配的玩家ID或通过玩家ID寻找匹配的玩家UUID
   - 删除指定玩家的数据文件
-  - 清除孤立的玩家数据(该功能处于测试版，请谨慎使用)
+  - 清除孤立的玩家数据(该功能处于测试版，请谨慎使用)(如果最近清除了usercache.json文件，请不要使用此功能。)
   - 删除数据文件时自动备份被删除的文件，防止误操作。
   - 注：该软件无法更改玩家数据文件的内容。
 - 该软件必需要安装.net 8.0 runtime框架才能运行。
@@ -14,7 +14,7 @@
 
 ## 开始使用:
 - 检查是否安装了.net 8.0 runtime框架。如果没有，请前往[此处下载和安装](https://dotnet.microsoft.com/zh-cn/download/dotnet/8.0)
-- [下载软件](https://github.com/Hgnim/MinecraftServerPlayerDataManager/latest)
+- [下载软件](https://github.com/Hgnim/MinecraftServerPlayerDataManager/releases/latest)
 - 在MC服务端根目录运行软件或指定MC服务端根目录，或者直接将软件放入MC服务端的根目录
 - 需要保证这些关键文件夹的位置对应
   ```shell
