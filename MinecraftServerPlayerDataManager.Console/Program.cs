@@ -1,13 +1,9 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using System.IO;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.InteropServices;
-using static System.Net.Mime.MediaTypeNames;
 
-namespace MinecraftServerPlayerDataManager
-{
-    class Program
+namespace MinecraftServerPlayerDataManager.Console {
+	using Console = System.Console;
+	class Program
     {
         static readonly string version = "1.1.0.20241009";
         public static System.ConsoleColor defBack;

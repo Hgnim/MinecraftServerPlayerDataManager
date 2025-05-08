@@ -1,23 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AssemblyName>mspdm</AssemblyName>
-    <Company>Hgnim</Company>
-    <Product>我的世界服务器玩家数据文件管理器</Product>
-    <Description>我的世界服务器玩家数据文件管理器</Description>
-    <Copyright>Copyright (C) 2023-2024 Hgnim, All rights reserved.</Copyright>
-    <AssemblyVersion>1.1.0.1009</AssemblyVersion>
-    <FileVersion>1.1.0.20241009</FileVersion>
-    <Version>1.1.0.1009</Version>
-    <Title>MinecraftServerPlayerDataManager</Title>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-  </ItemGroup>
 
 </Project>
