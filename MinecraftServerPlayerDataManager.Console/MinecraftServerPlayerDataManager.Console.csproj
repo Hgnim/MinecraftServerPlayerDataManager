@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <ProjectReference Include="..\MinecraftServerPlayerDataManager\MinecraftServerPlayerDataManager.csproj" />
   </ItemGroup>
 
 </Project>
