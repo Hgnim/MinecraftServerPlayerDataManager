@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MinecraftServerPlayerDataManager\MinecraftServerPlayerDataManager.csproj" />
+    <ProjectReference Include="..\MinecraftServerPlayerDataManager.Core\MinecraftServerPlayerDataManager.Core.csproj" />
   </ItemGroup>
 
 </Project>

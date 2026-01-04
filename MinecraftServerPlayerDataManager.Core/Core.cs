@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using static MinecraftServerPlayerDataManager.GlobalFunction;
+using static MinecraftServerPlayerDataManager.Core.GlobalFunction;
 
-namespace MinecraftServerPlayerDataManager {
+namespace MinecraftServerPlayerDataManager.Core {
 	public class MspdmAction {
 		public string RunPath => runPath;
 		readonly string runPath;

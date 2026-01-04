@@ -1,4 +1,4 @@
-﻿using MinecraftServerPlayerDataManager;
+﻿using MinecraftServerPlayerDataManager.Core;
 
 namespace MinecraftServerPlayerDataManager.Console {
 	using Console = System.Console;

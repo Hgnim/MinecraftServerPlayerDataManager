@@ -5,7 +5,7 @@ VisualStudioVersion = 17.8.34322.80
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MinecraftServerPlayerDataManager.Console", "MinecraftServerPlayerDataManager.Console\MinecraftServerPlayerDataManager.Console.csproj", "{B2084E44-AAE9-4E03-A604-3FA714138403}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinecraftServerPlayerDataManager", "MinecraftServerPlayerDataManager\MinecraftServerPlayerDataManager.csproj", "{8BA5EE00-22CA-408D-8B31-643A397B2293}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinecraftServerPlayerDataManager.Core", "MinecraftServerPlayerDataManager.Core\MinecraftServerPlayerDataManager.Core.csproj", "{8BA5EE00-22CA-408D-8B31-643A397B2293}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
