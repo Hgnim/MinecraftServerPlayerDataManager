@@ -25,11 +25,26 @@ namespace MinecraftServerPlayerDataManager.Core {
 			PlayerDataFile = new PlayerDataFile_Class(RunPath,defBack,defFore);
 		}
 		public interface IPlayerDataFile {
-			void CheckPlayerDataFile();
+			/// <summary>
+			/// 最后数据结果存储变量
+			/// </summary>
+			public class ResultsData {
+				internal enum Type {
+					CheckFile, CheckJson
+				}
+				/// <summary>
+				/// 数据类型
+				/// </summary>
+				internal Type type;
+				internal byte[]? ynId;
+				internal string[]? ucData, dataSuffix, tempStr;
+				internal string? verifyDir, file;
+			}
+			delegate void logOutput(uint id, params object[] logArg);
+			List<ResultsData> CheckPlayerDataFile(logOutput? logOutput=null);
 			void FindPlayerDataFile(string[] inputPlayerData);
 			void DeletePlayerDataFile(string[] inputPlayerData);
 			void ClearJunkPlayerDataFile();
-			struct CheckData;
 		}
 		public IPlayerDataFile PlayerDataFile { get; private set; }
 		private class PlayerDataFile_Class: IPlayerDataFile {
@@ -44,33 +59,33 @@ namespace MinecraftServerPlayerDataManager.Core {
 				backupDelFiles = new(RunPath);
 			}
 
-			List<CheckData.ResultsData> dataCheck_ResultsOutput = [];
-			public void CheckPlayerDataFile() {
-				Console.WriteLine("正在读取文件:\'" + RunPath + "/usercache.json" + "\'");
+
+			public List<IPlayerDataFile.ResultsData> CheckPlayerDataFile(IPlayerDataFile.logOutput? logOutput=null) {
+				List<IPlayerDataFile.ResultsData> dataCheck_ResultsOutput = [];
+
+				logOutput?.Invoke(0, RunPath);
 				DelayUs();
 				///用户数据临时存储变量
 				///0: name
 				///1: uuid
 				List<string[]> usercacheData = [];
 				///最后的结果输出                            
-				CheckData.ResultsStats stats = new();
-				// StreamReader reader = File.OpenText(RunPath + "/usercache.json");
-				// //usercacheFileData = reader.ReadToEnd();
-				// JsonTextReader jsonReader = new JsonTextReader(reader);
-				// JObject jsonObject = (JObject)JToken.ReadFrom(jsonReader);
-				//string str= jsonObject[""].ToList()[0]["name"].ToString();
-				// reader.Close();
+				dynamic stats = new System.Dynamic.ExpandoObject();{
+					stats.allNum = (ulong)0;
+					stats.successNum = (ulong)0;
+					stats.halfSuccessNum = (ulong)0;
+					stats.failNum = (ulong)0;
+				}
 #pragma warning disable CS8600 // 将 null 字面量或可能为 null 的值转换为非 null 类型。
 				JArray jArry = (JArray)JsonConvert.DeserializeObject(File.ReadAllText(RunPath + "/usercache.json"));
 #pragma warning restore CS8600
-				//int jaCount = jArry.Count;
 #pragma warning disable CS8602 // 解引用可能出现空引用。
 				for (int i = 0; i < jArry.Count; i++) {
 					usercacheData.Add([jArry[i]["name"].ToString(), jArry[i]["uuid"].ToString()]);
-					Console.WriteLine("正在读取: \"name\":\"" + usercacheData[i][0] + "\",\"uuid\":\"" + usercacheData[i][1] + "\"");
+					logOutput?.Invoke(1, usercacheData[i][0], usercacheData[i][1]);
 					DelayUs();
 				}
-				Console.WriteLine("一共读取到" + jArry.Count.ToString() + "个数据");
+				logOutput?.Invoke(2, jArry.Count.ToString());
 #pragma warning restore CS8602
 				DelayUs();
 				{
@@ -94,7 +109,7 @@ namespace MinecraftServerPlayerDataManager.Core {
 								dataSuffix[0] = ".json";
 								break;
 						}
-						Console.WriteLine("开始将\'" + RunPath + "/usercache.json" + "\'与\'" + RunPath + "/world/" + verifyDir + "\'进行验证");
+						logOutput?.Invoke(3, RunPath, verifyDir);
 						DelayUs();
 						for (int i = 0; i < jArry.Count; i++)//使用usercache.json文件中的数据和别的文件夹进行对比验证
 						{
@@ -106,42 +121,30 @@ namespace MinecraftServerPlayerDataManager.Core {
 								else pass[1] = false;
 							}
 
-							string[] ynStr = new string[4];//用于判断的文本
-														   //ps:以前写的什么狗屎代码，看得犯恶心
+							byte[] ynid = new byte[4];//用于判断
 							if (pass[0])
-								ynStr[0] = "存在";
-							else ynStr[0] = "丢失";
+								ynid[0] = 0;
+							else ynid[0] = 1;
 							if (verifyDir == "playerdata") {
 								if (pass[1])
-									ynStr[1] = "存在";
+									ynid[1] = 0;
 								else
-									ynStr[1] = "丢失";
+									ynid[1] = 1;
 							}
 							if (verifyDir == "playerdata") {
 								if (pass[0] && pass[1])
-									ynStr[2] = "成功";
+									ynid[2] = 0;//"成功";
 								else if (pass[0] && pass[1] == false)
-									ynStr[2] = "半成功";
+									ynid[2] = 2;//"半成功";
 								else
-									ynStr[2] = "失败";
+									ynid[2] = 1;//"失败";
 							}
 							else {
 								if (pass[0])
-									ynStr[2] = "成功";
+									ynid[2] = 0;
 								else
-									ynStr[2] = "失败";
+									ynid[2] = 1;
 							}
-							/*if (verifyDir == "playerdata")
-							{
-								ynStr[3] = "验证" + ynStr[2] + ":" + usercacheData[i][0] + "[" + usercacheData[i][1] + "] >>>> " +
-										"\'" + RunPath + "/world/" + verifyDir + "/" + usercacheData[i][1] + dataSuffix[0] + "\'[" + ynStr[0] + "] & " +
-										"\'" + RunPath + "/world/" + verifyDir + "/" + usercacheData[i][1] + dataSuffix[1] + "\'[" + ynStr[1] + "]";                                                                                       
-							}
-							else
-							{
-								ynStr[3] = "验证" + ynStr[2] + ":" + usercacheData[i][0] + "[" + usercacheData[i][1] + "] >>>> " +
-										"\'" + RunPath + "/world/" + verifyDir + "/" + usercacheData[i][1] + dataSuffix[0] + "\'[" + ynStr[0] + "]";
-							}*/
 							//将输出变为彩色输出
 							if (verifyDir == "playerdata") {
 								if (pass[0] && pass[1])
@@ -158,17 +161,17 @@ namespace MinecraftServerPlayerDataManager.Core {
 									stats.failNum++;
 							}
 							stats.allNum++;
-							CheckData.CheckFileOutputLog(ynStr, usercacheData[i], verifyDir, dataSuffix,RunPath,defFore);
+							logOutput?.Invoke(4, ynid, usercacheData[i], verifyDir, dataSuffix, RunPath);
 							if (!(pass[0])) {
 								dataCheck_ResultsOutput.Add(
 								new() {
-									type = CheckData.ResultsData.Type.CheckFile,
-									ynStr = ynStr,
+									type = IPlayerDataFile.ResultsData.Type.CheckFile,
+									ynId = ynid,
 									ucData = usercacheData[i],
 									verifyDir = verifyDir,
 									dataSuffix = dataSuffix
 								});
-								//dataCheck_ResultsOutput.Add(ynStr[3]);
+								//dataCheck_ResultsOutput.Add(ynid[3]);
 							}
 							DelayUs();
 						}
@@ -190,7 +193,7 @@ namespace MinecraftServerPlayerDataManager.Core {
 								dataSuffix[0] = ".json";
 								break;
 						}
-						Console.WriteLine("开始将\'" + RunPath + "/world/" + verifyDir + "\'与\'" + RunPath + "/usercache.json" + "\'进行验证");
+						logOutput?.Invoke(5, RunPath, verifyDir);
 						DelayUs();
 						string[] files = Directory.GetFiles(RunPath + "/world/" + verifyDir, "*.*");
 						foreach (string file in files) {
@@ -211,17 +214,17 @@ namespace MinecraftServerPlayerDataManager.Core {
 								tempStr[1] = "失败";
 								tempStr[2] = "[未找到相应数据]";
 							}
-							//tempStr[0] = "验证" + tempStr[1] + ":" + RunPath + "/world/" + verifyDir+"/"+ Path.GetFileName(file) + " >>>> " + tempStr[2];
 							if (pass[0])
 								stats.successNum++;
 							else
 								stats.failNum++;
 							stats.allNum++;
-							CheckData.CheckJsonOutputLog(tempStr, verifyDir, file,RunPath,defFore);
+							logOutput?.Invoke(6, tempStr, verifyDir, file, RunPath);
+							//CheckData.CheckJsonOutputLog(tempStr, verifyDir, file,RunPath,defFore);
 							if (!(pass[0])) {
 								dataCheck_ResultsOutput.Add(
 								new() {
-									type = CheckData.ResultsData.Type.CheckJson,
+									type = IPlayerDataFile.ResultsData.Type.CheckJson,
 									tempStr = tempStr,
 									verifyDir = verifyDir,
 									file = file
@@ -235,34 +238,40 @@ namespace MinecraftServerPlayerDataManager.Core {
 				}
 
 
-				Console.WriteLine();
-				Console.WriteLine();
-				Console.WriteLine("--------*验证结果*--------");
-				Console.Write("一共扫描了" + stats.allNum.ToString() + "个对象");
-				if (stats.successNum != 0)
-					Console.Write("；" + stats.successNum.ToString() + "个成功");
-				if (stats.failNum != 0)
-					Console.Write("；" + stats.failNum.ToString() + "个失败");
-				if (stats.halfSuccessNum != 0)
-					Console.Write("；" + stats.halfSuccessNum.ToString() + "个半成功");
-				Console.WriteLine("。");
+				
+				logOutput?.Invoke(7, 
+					stats.allNum, 
+					stats.successNum, 
+					stats.failNum, 
+					stats.halfSuccessNum);
 				if (dataCheck_ResultsOutput.Count != 0) {
 					for (int i = 0; i < dataCheck_ResultsOutput.Count; i++) {
 						//Console.WriteLine(dataCheck_ResultsOutput[i]); 
 						switch (dataCheck_ResultsOutput[i].type) {
-							case CheckData.ResultsData.Type.CheckFile:
-								CheckData.CheckFileOutputLog(dataCheck_ResultsOutput[i].ynStr!, dataCheck_ResultsOutput[i].ucData!, dataCheck_ResultsOutput[i].verifyDir!, dataCheck_ResultsOutput[i].dataSuffix!, RunPath, defFore);
+							case IPlayerDataFile.ResultsData.Type.CheckFile:
+								logOutput?.Invoke(8,
+									dataCheck_ResultsOutput[i].ynId!,
+									dataCheck_ResultsOutput[i].ucData!,
+									dataCheck_ResultsOutput[i].verifyDir!,
+									dataCheck_ResultsOutput[i].dataSuffix!,
+									RunPath);
 								break;
-							case CheckData.ResultsData.Type.CheckJson:
-								CheckData.CheckJsonOutputLog(dataCheck_ResultsOutput[i].tempStr!, dataCheck_ResultsOutput[i].verifyDir!, dataCheck_ResultsOutput[i].file!, RunPath, defFore);
+							case IPlayerDataFile.ResultsData.Type.CheckJson:
+								logOutput?.Invoke(9, 
+									dataCheck_ResultsOutput[i].tempStr!, 
+									dataCheck_ResultsOutput[i].verifyDir!, 
+									dataCheck_ResultsOutput[i].file!, 
+									RunPath);
 								break;
 						}
 						DelayUs();
 					}
 				}
 				else {
-					Console.WriteLine("--------*未发现潜在问题*--------");
+					logOutput?.Invoke(10);
 				}
+
+				return dataCheck_ResultsOutput;
 			}
 
 			readonly BackupDelFiles backupDelFiles;
@@ -337,7 +346,7 @@ namespace MinecraftServerPlayerDataManager.Core {
 			}
 
 			public void ClearJunkPlayerDataFile() {
-				CheckPlayerDataFile();
+				List<IPlayerDataFile.ResultsData> dataCheck_ResultsOutput = CheckPlayerDataFile();
 
 				bool deleteConfirm = false;
 				bool isNothing = true;
@@ -345,7 +354,7 @@ namespace MinecraftServerPlayerDataManager.Core {
 			confirm:;
 				for (int i = 0; i < dataCheck_ResultsOutput.Count; i++) {
 					switch (dataCheck_ResultsOutput[i].type) {
-						case CheckData.ResultsData.Type.CheckJson:
+						case IPlayerDataFile.ResultsData.Type.CheckJson:
 							if (!deleteConfirm) {
 								Console.WriteLine(dataCheck_ResultsOutput[i].file!);
 								if (isNothing) isNothing = false;
@@ -374,126 +383,6 @@ namespace MinecraftServerPlayerDataManager.Core {
 								break;
 						}
 					}
-				}
-			}
-
-
-			/// <summary>
-			/// 检查文件功能类
-			/// </summary>
-			struct CheckData {
-				///<summary>
-				/// 检查文件块的彩色输出日志
-				/// </summary>
-				/// <param name="ynStr">顾名思义，按照原来的往里塞就行</param>
-				/// <param name="ucData">原名usercacheData，数组含义与原变量相同</param>
-				/// <param name="verifyDir">顾名思义，按照原来的往里塞就行</param>
-				/// <param name="dataSuffix">顾名思义，按照原来的往里塞就行</param>
-				internal static void CheckFileOutputLog(string[] ynStr, string[] ucData, string verifyDir, string[] dataSuffix, string RunPath, System.ConsoleColor defFore) {
-					if (ynStr[2] == "成功") Console.ForegroundColor = ConsoleColor.Green;
-					else if (ynStr[2] == "半成功") Console.ForegroundColor = ConsoleColor.DarkYellow;
-					else Console.ForegroundColor = ConsoleColor.Red;
-					Console.Write("验证" + ynStr[2]);
-					Console.ForegroundColor = defFore;
-					Console.Write(": ");
-					Console.ForegroundColor = ConsoleColor.Blue;
-					Console.ForegroundColor = ConsoleColor.Gray;
-					Console.Write("[");
-					Console.ForegroundColor = ConsoleColor.Blue;
-					Console.Write(ucData[0]);
-					Console.ForegroundColor = ConsoleColor.Gray;
-					Console.Write(", ");
-					Console.ForegroundColor = ConsoleColor.DarkBlue;
-					Console.Write(ucData[1]);
-					Console.ForegroundColor = ConsoleColor.Gray;
-					Console.Write("]");
-					//Console.Write(ucData[0] + "[" + ucData[1] + "]");
-					Console.ForegroundColor = defFore;
-					Console.Write(" >>>> " + "\'" + RunPath + "/world/");
-					Console.ForegroundColor = ConsoleColor.Yellow;
-					Console.Write(verifyDir);
-					Console.ForegroundColor = defFore;
-					Console.Write("/" + ucData[1] + dataSuffix[0] + "\'[");
-					if (ynStr[0] == "存在") Console.ForegroundColor = ConsoleColor.Green;
-					else Console.ForegroundColor = ConsoleColor.Red;
-					Console.Write(ynStr[0]);
-					Console.ForegroundColor = defFore;
-					if (verifyDir == "playerdata") {
-						Console.Write("] & " + "\'" + RunPath + "/world/");
-						Console.ForegroundColor = ConsoleColor.Yellow;
-						Console.Write(verifyDir);
-						Console.ForegroundColor = defFore;
-						Console.Write("/" + ucData[1] + dataSuffix[1] + "\'[");
-						if (ynStr[1] == "存在") Console.ForegroundColor = ConsoleColor.Green;
-						else Console.ForegroundColor = ConsoleColor.Red;
-						Console.Write(ynStr[1]);
-					}
-					Console.ForegroundColor = defFore;
-					Console.Write("]");
-					Console.WriteLine();
-				}
-				/// <summary>
-				/// 检查json文件块的彩色输出
-				/// </summary>
-				/// <param name="tempStr">顾名思义，按照原来的往里塞就行</param>
-				/// <param name="verifyDir">顾名思义，按照原来的往里塞就行</param>
-				/// <param name="file">顾名思义，按照原来的往里塞就行</param>
-				internal static void CheckJsonOutputLog(string[] tempStr, string verifyDir, string file,string RunPath,System.ConsoleColor defFore) {
-					if (tempStr[1] == "成功")
-						Console.ForegroundColor = ConsoleColor.Green;
-					else
-						Console.ForegroundColor = ConsoleColor.Red;
-					Console.Write("验证" + tempStr[1]);
-					Console.ForegroundColor = defFore;
-					Console.Write(": " + RunPath + "/world/");
-					Console.ForegroundColor = ConsoleColor.Yellow;
-					Console.Write(verifyDir);
-					Console.ForegroundColor = defFore;
-					Console.Write("/" + Path.GetFileName(file) + " >>>> ");
-
-					if (tempStr[3] == null) {
-						Console.ForegroundColor = ConsoleColor.Blue;
-						Console.Write(tempStr[2]);
-					}
-					else {
-						Console.ForegroundColor = ConsoleColor.Gray;
-						Console.Write("[");
-						Console.ForegroundColor = ConsoleColor.Blue;
-						Console.Write(tempStr[2]);
-						Console.ForegroundColor = ConsoleColor.Gray;
-						Console.Write(", ");
-						Console.ForegroundColor = ConsoleColor.DarkBlue;
-						Console.Write(tempStr[3]);
-						Console.ForegroundColor = ConsoleColor.Gray;
-						Console.Write("]");
-					}
-					Console.ForegroundColor = defFore;
-					Console.WriteLine();
-				}
-				/// <summary>
-				/// 最后数据结果存储变量
-				/// </summary>
-				internal class ResultsData {
-					internal enum Type {
-						CheckFile, CheckJson
-					}
-					/// <summary>
-					/// 数据类型
-					/// </summary>
-					internal Type type;
-					//批注：将数据全部往里塞就行了，要怪就怪之前写的狗屎代码
-					internal string[]? ynStr, ucData, dataSuffix, tempStr;
-					internal string? verifyDir, file;
-					//internal bool[]? pass;
-				}
-				/// <summary>
-				/// 结果统计存储类
-				/// </summary>
-				internal class ResultsStats {
-					internal long allNum = 0;
-					internal long successNum = 0;
-					internal long halfSuccessNum = 0;
-					internal long failNum = 0;
 				}
 			}
 		}
